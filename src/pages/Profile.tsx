@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { User, Mail, Phone, MapPin, Calendar, Bell, Shield, Moon, Globe, CreditCard } from 'lucide-react'
+import { User, Mail, MapPin, Calendar, Bell, Shield, Moon, Globe } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 export default function Profile() {
