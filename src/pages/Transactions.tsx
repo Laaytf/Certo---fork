@@ -7,31 +7,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Plus, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-
-interface Transaction {
-  id: number
-  description: string
-  amount: number
-  type: 'income' | 'expense'
-  category: string
-  date: string
-  status: 'pending' | 'completed'
-}
+import { useTransactions } from '@/hooks/use-transactions'
+import { useCategories } from '@/hooks/use-categories'
 
 export default function Transactions() {
+  const { transactions, loading, createTransaction } = useTransactions()
+  const { categories } = useCategories()
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all')
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
-  const [transactions] = useState<Transaction[]>([
-    { id: 1, description: 'Salário', amount: 5000, type: 'income', category: 'Trabalho', date: '2025-12-15', status: 'completed' },
-    { id: 2, description: 'Supermercado Extra', amount: -320, type: 'expense', category: 'Alimentação', date: '2025-12-14', status: 'completed' },
-    { id: 3, description: 'Freelance Web Design', amount: 1500, type: 'income', category: 'Extra', date: '2025-12-13', status: 'completed' },
-    { id: 4, description: 'Conta de Luz', amount: -180, type: 'expense', category: 'Contas', date: '2025-12-12', status: 'completed' },
-    { id: 5, description: 'Netflix', amount: -55, type: 'expense', category: 'Lazer', date: '2025-12-10', status: 'completed' },
-    { id: 6, description: 'Uber', amount: -45, type: 'expense', category: 'Transporte', date: '2025-12-10', status: 'completed' },
-    { id: 7, description: 'Restaurante', amount: -120, type: 'expense', category: 'Alimentação', date: '2025-12-09', status: 'completed' },
-    { id: 8, description: 'Venda Online', amount: 800, type: 'income', category: 'Extra', date: '2025-12-08', status: 'pending' },
-  ])
+  // Formulário de criação
+  const [newDescription, setNewDescription] = useState('')
+  const [newAmount, setNewAmount] = useState('')
+  const [newType, setNewType] = useState<'income' | 'expense'>('expense')
+  const [newCategoryId, setNewCategoryId] = useState('')
+  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0])
+
+  const handleCreateTransaction = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const amount = parseFloat(newAmount)
+    if (isNaN(amount) || amount <= 0) return
+
+    await createTransaction(newType, newDescription, amount, newCategoryId || null, newDate)
+
+    // Limpar formulário
+    setNewDescription('')
+    setNewAmount('')
+    setNewType('expense')
+    setNewCategoryId('')
+    setNewDate(new Date().toISOString().split('T')[0])
+    setIsCreateDialogOpen(false)
+  }
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -39,8 +46,27 @@ export default function Transactions() {
     return matchesSearch && matchesType
   })
 
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
-  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0)
+  const totalIncome = transactions
+    .filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0)
+  const totalExpense = transactions
+    .filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0)
+
+  // Mapear category_id para nome da categoria
+  const getCategoryName = (categoryId: string | null) => {
+    if (!categoryId) return 'Sem categoria'
+    const category = categories.find((c) => c.id === categoryId)
+    return category?.name || 'Sem categoria'
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -50,7 +76,7 @@ export default function Transactions() {
           <h1 className="text-3xl font-heading font-bold text-foreground">Transações</h1>
           <p className="text-muted-foreground mt-1">Gerencie suas receitas e despesas</p>
         </div>
-        <Dialog>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
@@ -61,19 +87,33 @@ export default function Transactions() {
             <DialogHeader>
               <DialogTitle className="font-heading">Adicionar Transação</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <form onSubmit={handleCreateTransaction} className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="description">Descrição</Label>
-                <Input id="description" placeholder="Ex: Supermercado" />
+                <Input
+                  id="description"
+                  placeholder="Ex: Supermercado"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  required
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="amount">Valor</Label>
-                  <Input id="amount" type="number" placeholder="0,00" />
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    value={newAmount}
+                    onChange={(e) => setNewAmount(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">Tipo</Label>
-                  <Select>
+                  <Select value={newType} onValueChange={(value) => setNewType(value as 'income' | 'expense')}>
                     <SelectTrigger id="type">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
@@ -87,26 +127,33 @@ export default function Transactions() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Categoria</Label>
-                  <Select>
+                  <Select value={newCategoryId} onValueChange={setNewCategoryId}>
                     <SelectTrigger id="category">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="food">Alimentação</SelectItem>
-                      <SelectItem value="transport">Transporte</SelectItem>
-                      <SelectItem value="bills">Contas</SelectItem>
-                      <SelectItem value="leisure">Lazer</SelectItem>
-                      <SelectItem value="work">Trabalho</SelectItem>
+                      <SelectItem value="">Sem categoria</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="date">Data</Label>
-                  <Input id="date" type="date" />
+                  <Input
+                    id="date"
+                    type="date"
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    required
+                  />
                 </div>
               </div>
-              <Button className="w-full">Adicionar Transação</Button>
-            </div>
+              <Button type="submit" className="w-full">Adicionar Transação</Button>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
@@ -191,50 +238,55 @@ export default function Transactions() {
           <CardTitle className="font-heading">Histórico</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {filteredTransactions.map((transaction, index) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-4 rounded-lg hover:bg-accent transition-all duration-200 animate-scale-in"
-                style={{ animationDelay: `${index * 50 + 400}ms` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-lg ${
-                    transaction.type === 'income' ? 'bg-emerald-500/10' : 'bg-red-500/10'
-                  }`}>
-                    {transaction.type === 'income' ? (
-                      <ArrowUpRight className="h-5 w-5 text-emerald-600" />
-                    ) : (
-                      <ArrowDownRight className="h-5 w-5 text-red-600" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">{transaction.description}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {transaction.category}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(transaction.date).toLocaleDateString('pt-BR')}
-                      </span>
+          {filteredTransactions.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Nenhuma transação encontrada</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredTransactions.map((transaction, index) => (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between p-4 rounded-lg hover:bg-accent transition-all duration-200 animate-scale-in"
+                  style={{ animationDelay: `${index * 50 + 400}ms` }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`p-3 rounded-lg ${
+                        transaction.type === 'income' ? 'bg-emerald-500/10' : 'bg-red-500/10'
+                      }`}
+                    >
+                      {transaction.type === 'income' ? (
+                        <ArrowUpRight className="h-5 w-5 text-emerald-600" />
+                      ) : (
+                        <ArrowDownRight className="h-5 w-5 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{transaction.description}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {getCategoryName(transaction.category_id)}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <span className={`text-lg font-bold ${
-                    transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
-                  }`}>
-                    {transaction.type === 'income' ? '+' : '-'}R$ {Math.abs(transaction.amount).toFixed(2)}
-                  </span>
-                  <div className="mt-1">
-                    <Badge variant={transaction.status === 'completed' ? 'default' : 'outline'} className="text-xs">
-                      {transaction.status === 'completed' ? 'Concluída' : 'Pendente'}
-                    </Badge>
+                  <div className="text-right">
+                    <span
+                      className={`text-lg font-bold ${
+                        transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {transaction.type === 'income' ? '+' : '-'}R$ {transaction.amount.toFixed(2)}
+                    </span>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

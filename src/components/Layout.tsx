@@ -1,12 +1,24 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, ArrowRightLeft, FolderOpen, TrendingUp, User, Bell, Menu, X } from 'lucide-react'
+import { LayoutDashboard, ArrowRightLeft, FolderOpen, TrendingUp, User, Bell, Menu, X, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { signOut } = useAuth()
+  const { toast } = useToast()
+
+  const handleLogout = async () => {
+    await signOut()
+    toast({
+      title: 'Logout realizado',
+      description: 'Até logo!',
+    })
+  }
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -56,6 +68,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
+            </Button>
+
+            <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
+              <LogOut className="h-5 w-5" />
             </Button>
 
             {/* Mobile Menu Button */}
