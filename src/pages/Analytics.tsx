@@ -4,6 +4,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { useAnalytics } from '@/hooks/use-analytics'
 
+// Função para ajustar automaticamente cores duplicadas com variações de luminosidade
+function adjustDuplicateColors(categories: Array<{ color: string; [key: string]: any }>) {
+  const colorMap = new Map<string, number>()
+
+  return categories.map((category) => {
+    const baseColor = category.color
+    const count = colorMap.get(baseColor) || 0
+    colorMap.set(baseColor, count + 1)
+
+    // Se não há duplicata, usa a cor original
+    if (count === 0) {
+      return { ...category, chartColor: baseColor }
+    }
+
+    // Aplica variação de luminosidade para duplicatas
+    // Converte hex para RGB, ajusta luminosidade, retorna novo hex
+    const hex = baseColor.replace('#', '')
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+
+    // Fator de ajuste: cada duplicata fica progressivamente mais escura
+    const factor = 1 - (count * 0.15)
+    const newR = Math.round(r * factor)
+    const newG = Math.round(g * factor)
+    const newB = Math.round(b * factor)
+
+    const adjustedColor = `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`
+
+    return { ...category, chartColor: adjustedColor }
+  })
+}
+
 export default function Analytics() {
   const {
     loading,
@@ -229,7 +262,7 @@ export default function Analytics() {
                   {/* Pie Chart Representation */}
                   <div className="flex items-center justify-center p-8">
                     <div className="relative w-48 h-48">
-                      {categorySpending.slice(0, 5).map((category, index) => {
+                      {adjustDuplicateColors(categorySpending.slice(0, 5)).map((category, index) => {
                         const totalBefore = categorySpending.slice(0, index).reduce((sum, c) => sum + c.percentage, 0)
                         const rotation = (totalBefore / 100) * 360
                         const strokeDasharray = `${category.percentage} ${100 - category.percentage}`
@@ -244,7 +277,7 @@ export default function Analytics() {
                             <path
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                               fill="none"
-                              stroke={category.color}
+                              stroke={category.chartColor}
                               strokeWidth="3"
                               strokeDasharray={strokeDasharray}
                               strokeDashoffset="0"
