@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useTransactions, Transaction } from './use-transactions'
+import { useTransactions } from './use-transactions'
 import { useCategories } from './use-categories'
 
 interface MonthlyData {
