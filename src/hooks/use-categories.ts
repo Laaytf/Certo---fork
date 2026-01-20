@@ -13,6 +13,84 @@ export interface Category {
   created_at: string
 }
 
+// Mapeamento de palavras-chave para sugestão automática de emojis
+const emojiSuggestions: Record<string, string> = {
+  'alimentação': '🍽️',
+  'comida': '🍔',
+  'restaurante': '🍽️',
+  'supermercado': '🛒',
+  'mercado': '🛒',
+  'compras': '🛒',
+  'transporte': '🚗',
+  'carro': '🚗',
+  'uber': '🚕',
+  'taxi': '🚕',
+  'gasolina': '⛽',
+  'combustível': '⛽',
+  'lazer': '🎮',
+  'entretenimento': '🎬',
+  'diversão': '🎉',
+  'cinema': '🎬',
+  'contas': '🧾',
+  'conta': '🧾',
+  'boleto': '🧾',
+  'casa': '🏠',
+  'moradia': '🏠',
+  'aluguel': '🏠',
+  'trabalho': '💼',
+  'escritório': '💼',
+  'saúde': '💊',
+  'médico': '⚕️',
+  'hospital': '🏥',
+  'farmácia': '💊',
+  'remédio': '💊',
+  'educação': '🎓',
+  'estudo': '📚',
+  'curso': '🎓',
+  'escola': '🎓',
+  'faculdade': '🎓',
+  'livro': '📚',
+  'investimento': '📈',
+  'investimentos': '📈',
+  'poupança': '💰',
+  'economia': '💰',
+  'viagem': '✈️',
+  'férias': '🏖️',
+  'turismo': '✈️',
+  'roupa': '👕',
+  'vestuário': '👕',
+  'beleza': '💄',
+  'cosméticos': '💄',
+  'pet': '🐾',
+  'animal': '🐾',
+  'cachorro': '🐕',
+  'gato': '🐈',
+  'telefone': '📱',
+  'celular': '📱',
+  'internet': '🌐',
+  'energia': '⚡',
+  'luz': '💡',
+  'água': '💧',
+  'academia': '🏋️',
+  'esporte': '⚽',
+  'presente': '🎁',
+  'gift': '🎁',
+}
+
+// Função para sugerir emoji baseado no nome
+function suggestEmoji(name: string): string {
+  const nameLower = name.toLowerCase().trim()
+
+  // Procurar correspondência exata ou parcial
+  for (const [keyword, emoji] of Object.entries(emojiSuggestions)) {
+    if (nameLower.includes(keyword)) {
+      return emoji
+    }
+  }
+
+  return '📁' // Emoji padrão
+}
+
 export function useCategories() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,10 +109,10 @@ export function useCategories() {
         .order('created_at', { ascending: true })
 
       if (error) throw error
-      // Garantir que icon existe, usando valor padrão se necessário
+      // Garantir que icon existe, sugerindo baseado no nome se necessário
       const categoriesWithIcon = (data || []).map(cat => ({
         ...cat,
-        icon: (cat as any).icon || '📁'
+        icon: (cat as any).icon || suggestEmoji(cat.name)
       })) as Category[]
       setCategories(categoriesWithIcon)
     } catch (error: any) {
@@ -67,10 +145,10 @@ export function useCategories() {
 
       if (error) throw error
 
-      // Garantir que icon existe
+      // Garantir que icon existe, sugerindo baseado no nome se necessário
       const categoryWithIcon: Category = {
         ...data,
-        icon: (data as any).icon || '📁'
+        icon: (data as any).icon || suggestEmoji(data.name)
       }
       setCategories([...categories, categoryWithIcon])
       toast({
@@ -103,10 +181,10 @@ export function useCategories() {
 
       if (error) throw error
 
-      // Garantir que icon existe
+      // Garantir que icon existe, sugerindo baseado no nome se necessário
       const updatedCategoryWithIcon: Category = {
         ...data,
-        icon: (data as any).icon || '📁'
+        icon: (data as any).icon || suggestEmoji(data.name)
       }
       setCategories(categories.map((cat) => (cat.id === id ? updatedCategoryWithIcon : cat)))
       toast({
