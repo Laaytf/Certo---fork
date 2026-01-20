@@ -1,5 +1,6 @@
 -- Atualizar emojis das categorias existentes baseado no nome
 -- Este script sugere automaticamente o emoji correto para cada categoria
+-- Execute este script para aplicar os emojis corretos
 
 UPDATE categories
 SET icon = CASE
@@ -67,7 +68,6 @@ SET icon = CASE
   -- Presente
   WHEN LOWER(name) LIKE '%presente%' OR LOWER(name) LIKE '%gift%' THEN '🎁'
 
-  -- Padrão
-  ELSE '📁'
-END
-WHERE icon IS NULL OR icon = '📁';
+  -- Padrão (mantém o emoji atual se não houver match)
+  ELSE COALESCE(icon, '📁')
+END;
