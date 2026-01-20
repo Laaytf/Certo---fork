@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { User, Calendar, Bell, Shield, Moon, Globe } from 'lucide-react'
+import { User, Calendar, Shield, Moon, Globe } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useProfile } from '@/hooks/use-profile'
 import { useTransactions } from '@/hooks/use-transactions'
@@ -219,21 +219,6 @@ export default function Profile() {
                   checked={theme === 'dark'}
                   onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
                 />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-muted-foreground" />
-                    <Label>Notificações</Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Recurso em desenvolvimento
-                  </p>
-                </div>
-                <Switch disabled />
               </div>
 
               <Separator />

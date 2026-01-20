@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, ArrowRightLeft, FolderOpen, TrendingUp, User, Bell, Menu, X, LogOut } from 'lucide-react'
+import { LayoutDashboard, ArrowRightLeft, FolderOpen, TrendingUp, User, Menu, X, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -65,11 +65,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-            </Button>
-
             <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
               <LogOut className="h-5 w-5" />
             </Button>
