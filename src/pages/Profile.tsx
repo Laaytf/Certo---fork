@@ -32,6 +32,11 @@ export default function Profile() {
     }
   }
 
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditName('')
+  }
+
   // Calcular dias ativos (desde a criação da conta)
   const daysActive = profile
     ? Math.floor((new Date().getTime() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24))
@@ -172,10 +177,7 @@ export default function Profile() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => {
-                          setIsEditing(false)
-                          setEditName('')
-                        }}
+                        onClick={handleCancelEdit}
                       >
                         Cancelar
                       </Button>
