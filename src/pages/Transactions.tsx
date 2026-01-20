@@ -125,21 +125,23 @@ export default function Transactions() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Categoria</Label>
-                  <Select value={newCategoryId || undefined} onValueChange={setNewCategoryId}>
-                    <SelectTrigger id="category">
-                      <SelectValue placeholder="Sem categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {newType === 'expense' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Categoria</Label>
+                    <Select value={newCategoryId || undefined} onValueChange={setNewCategoryId}>
+                      <SelectTrigger id="category">
+                        <SelectValue placeholder="Sem categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="date">Data</Label>
                   <Input
