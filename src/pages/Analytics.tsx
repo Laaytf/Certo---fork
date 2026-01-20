@@ -308,9 +308,11 @@ export default function Analytics() {
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-4 h-4 rounded"
-                            style={{ backgroundColor: category.color }}
-                          />
+                            className="p-2 rounded-lg text-xl flex items-center justify-center"
+                            style={{ backgroundColor: `${category.color}20` }}
+                          >
+                            {category.icon}
+                          </div>
                           <span className="font-medium">{category.name}</span>
                         </div>
                         <div className="text-right">

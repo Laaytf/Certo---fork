@@ -187,7 +187,10 @@ export default function Transactions() {
                       <SelectContent>
                         {categories.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
-                            {category.name}
+                            <span className="flex items-center gap-2">
+                              <span>{category.icon}</span>
+                              <span>{category.name}</span>
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -419,7 +422,10 @@ export default function Transactions() {
                     <SelectContent>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
-                          {category.name}
+                          <span className="flex items-center gap-2">
+                            <span>{category.icon}</span>
+                            <span>{category.name}</span>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>

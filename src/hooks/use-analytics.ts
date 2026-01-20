@@ -14,6 +14,7 @@ interface CategorySpending {
   amount: number
   percentage: number
   color: string
+  icon: string
 }
 
 interface PeriodComparison {
@@ -139,6 +140,7 @@ export function useAnalytics() {
           name: category.name,
           amount,
           color: category.color,
+          icon: category.icon,
         }
       })
       .filter((cat) => cat.amount > 0)
