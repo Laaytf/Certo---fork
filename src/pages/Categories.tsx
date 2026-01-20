@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Plus, Trash2, FolderOpen } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Plus, Trash2, FolderOpen, MoreVertical, Pencil } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
-import { useCategories } from '@/hooks/use-categories'
+import { useCategories, type Category } from '@/hooks/use-categories'
 import { useTransactions } from '@/hooks/use-transactions'
 
 // Mapeamento de palavras-chave para sugestão automática de emojis
@@ -73,11 +74,13 @@ const emojiSuggestions: Record<string, string> = {
 }
 
 export default function Categories() {
-  const { categories, loading, createCategory, deleteCategory } = useCategories()
+  const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories()
   const { transactions } = useTransactions()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
 
-  // Formulário de criação
+  // Formulário de criação/edição
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryBudget, setNewCategoryBudget] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState('#3B82F6')
@@ -116,6 +119,36 @@ export default function Categories() {
     setNewCategoryColor('#3B82F6')
     setNewCategoryIcon('📁')
     setIsCreateDialogOpen(false)
+  }
+
+  const handleEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedCategory) return
+
+    const budget = parseFloat(newCategoryBudget) || 0
+    await updateCategory(selectedCategory.id, {
+      name: newCategoryName,
+      color: newCategoryColor,
+      budget,
+      icon: newCategoryIcon,
+    })
+
+    // Limpar formulário
+    setNewCategoryName('')
+    setNewCategoryBudget('')
+    setNewCategoryColor('#3B82F6')
+    setNewCategoryIcon('📁')
+    setSelectedCategory(null)
+    setIsEditDialogOpen(false)
+  }
+
+  const openEditDialog = (category: Category) => {
+    setSelectedCategory(category)
+    setNewCategoryName(category.name)
+    setNewCategoryBudget(category.budget.toString())
+    setNewCategoryColor(category.color)
+    setNewCategoryIcon(category.icon || '📁')
+    setIsEditDialogOpen(true)
   }
 
   // Calcular gastos por categoria
@@ -333,14 +366,26 @@ export default function Categories() {
                   )}
 
                   <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => deleteCategory(category.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="flex-1">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditDialog(category)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => deleteCategory(category.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Apagar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </CardContent>
               </Card>
@@ -348,6 +393,55 @@ export default function Categories() {
           })}
         </div>
       )}
+
+      {/* Modal de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Editar Categoria</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditCategory} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Nome da Categoria</Label>
+              <Input
+                id="edit-name"
+                placeholder="Ex: Educação"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-budget">Orçamento Mensal</Label>
+              <Input
+                id="edit-budget"
+                type="number"
+                step="0.01"
+                placeholder="0,00"
+                value={newCategoryBudget}
+                onChange={(e) => setNewCategoryBudget(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <div className="flex gap-2 flex-wrap">
+                {['#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#A855F7', '#EC4899', '#6B7280'].map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setNewCategoryColor(color)}
+                    className={`h-10 w-10 rounded-lg hover:scale-110 transition-transform ${
+                      newCategoryColor === color ? 'ring-2 ring-offset-2 ring-primary' : ''
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+            <Button type="submit" className="w-full">Salvar Alterações</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
